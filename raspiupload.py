@@ -109,7 +109,7 @@ def delete_expired_files():
 model = get_model(model_id="pothole-detection-project-bayaq/1", api_key="nWe7REaY8BsIq8grZ82f")
 
 # Open a connection to the webcam (change 0 if you have another camera module)
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 if not cap.isOpened():
     print("Error: Could not open webcam.")

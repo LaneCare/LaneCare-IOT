@@ -59,38 +59,38 @@ def upload_iot_report(base_url, userid, latitude, longitude, iot_id, image_file=
             'data': None
         }
 
-def retry_failed_uploads():
-    """
-    Retry uploading images that failed to upload before.
-    """
-    for filename in os.listdir(CAPTURE_TEMP_PATH):
-        file_path = os.path.join(CAPTURE_TEMP_PATH, filename)
-        if os.path.isfile(file_path):
-            try:
-                with open(file_path, 'rb') as image_file:
-                    # Try to re-upload the image using static GPS data
-                    response = upload_iot_report(
-                        base_url=API_URL,
-                        userid=USER_ID,
-                        latitude=STATIC_LATITUDE,
-                        longitude=STATIC_LONGITUDE,
-                        iot_id=IOT_ID,
-                        image_file=image_file
-                    )
+# def retry_failed_uploads():
+#     """
+#     Retry uploading images that failed to upload before.
+#     """
+#     for filename in os.listdir(CAPTURE_TEMP_PATH):
+#         file_path = os.path.join(CAPTURE_TEMP_PATH, filename)
+#         if os.path.isfile(file_path):
+#             try:
+#                 with open(file_path, 'rb') as image_file:
+#                     # Try to re-upload the image using static GPS data
+#                     response = upload_iot_report(
+#                         base_url=API_URL,
+#                         userid=USER_ID,
+#                         latitude=STATIC_LATITUDE,
+#                         longitude=STATIC_LONGITUDE,
+#                         iot_id=IOT_ID,
+#                         image_file=image_file
+#                     )
 
-                # If upload successful, delete the image
-                if response['status'] == 200:
-                    os.remove(file_path)
-                    print(f"Successfully re-uploaded and deleted: {file_path}")
-                else:
-                    print(f"Failed to re-upload: {file_path}")
+#                 # If upload successful, delete the image
+#                 if response['status'] == 200:
+#                     os.remove(file_path)
+#                     print(f"Successfully re-uploaded and deleted: {file_path}")
+#                 else:
+#                     print(f"Failed to re-upload: {file_path}")
 
-            except PermissionError as e:
-                print(f"Permission error: {e}. File might still be in use: {file_path}")
-            except Exception as e:
-                print(f"An error occurred while processing {file_path}: {e}")
+#             except PermissionError as e:
+#                 print(f"Permission error: {e}. File might still be in use: {file_path}")
+#             except Exception as e:
+#                 print(f"An error occurred while processing {file_path}: {e}")
 
-    return None  # Return None if no upload was successful
+#     return None  # Return None if no upload was successful
 
 def save_image_temp(image, filename):
     """
@@ -104,18 +104,7 @@ def save_image_temp(image, filename):
 
     return file_path
 
-def delete_expired_files():
-    """
-    Delete files that have been in the folder for more than 1 hour.
-    """
-    current_time = datetime.now()
-    for filename in os.listdir(CAPTURE_TEMP_PATH):
-        file_path = os.path.join(CAPTURE_TEMP_PATH, filename)
-        if os.path.isfile(file_path):
-            file_creation_time = datetime.fromtimestamp(os.path.getmtime(file_path))
-            if current_time - file_creation_time > timedelta(hours=1):
-                os.remove(file_path)
-                print(f"Deleted expired file: {file_path}")
+
 
 # Load a pre-trained YOLOv8n model
 model = get_model(model_id="pothole-detection-project-bayaq/1", api_key="nWe7REaY8BsIq8grZ82f")
@@ -132,8 +121,8 @@ bounding_box_annotator = sv.BoxAnnotator()
 label_annotator = sv.LabelAnnotator()
 
 while True:
-    # Retry any failed uploads before processing new ones
-    retry_failed_uploads()
+    # # Retry any failed uploads before processing new ones
+    # retry_failed_uploads()
 
     # Wait for 5 seconds before capturing the image
     time.sleep(5)
@@ -180,7 +169,6 @@ while True:
             print(f"Successfully uploaded: {image_filename}")
 
     # Delete expired files from the temp folder
-    delete_expired_files()
 
     # Break the loop if the 'q' key is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
