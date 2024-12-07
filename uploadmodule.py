@@ -1,5 +1,5 @@
-import os
 import cv2
+import os
 import time
 import requests
 import supervision as sv
@@ -121,9 +121,6 @@ bounding_box_annotator = sv.BoxAnnotator()
 label_annotator = sv.LabelAnnotator()
 
 while True:
-    # # Retry any failed uploads before processing new ones
-    # retry_failed_uploads()
-
     # Wait for 5 seconds before capturing the image
     time.sleep(5)
 
@@ -146,14 +143,12 @@ while True:
         annotated_frame = bounding_box_annotator.annotate(scene=frame, detections=detections)
         annotated_frame = label_annotator.annotate(scene=annotated_frame, detections=detections)
 
-        # Display the annotated frame
-        cv2.imshow('Webcam Detection', annotated_frame)
-
         # Save the image temporarily
         image_filename = f"capture_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
 
-        # Try to send the image to the API
-        with open(save_image_temp(annotated_frame, image_filename), 'rb') as image_file:
+        # Save and upload the image
+        saved_image_path = save_image_temp(annotated_frame, image_filename)
+        with open(saved_image_path, 'rb') as image_file:
             response = upload_iot_report(
                 base_url=API_URL,
                 userid=USER_ID,
@@ -163,20 +158,15 @@ while True:
                 image_file=image_file
             )
         
-        # If the upload fails, the image stays in capture_temp; it will be retried on the next loop iteration
+        # If the upload is successful, delete the saved image
         if response['status'] == 200:
-            os.remove(os.path.join(CAPTURE_TEMP_PATH, image_filename))
+            os.remove(saved_image_path)
             print(f"Successfully uploaded: {image_filename}")
+        else:
+            print(f"Failed to upload: {image_filename}, will retry later.")
 
-    # Delete expired files from the temp folder
-
-    # Break the loop if the 'q' key is pressed
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# Release the webcam and close windows
-cap.release()
-cv2.destroyAllWindows()
+    # Print a simple message instead of using a keypress to break
+    print("Processing completed. Press Ctrl+C to stop the loop.")
 
 
  # 1. Logging  (Report capture time)
